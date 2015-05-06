@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# HockeyApp info
+hockey_app_token=$HOCKEY_APP_TOKEN
+app_id=$HOCKEY_APP_ID
+
+# Slack info
+slack_hook_url=$SLACK_HOOK_URL
+
+# Date to get histgram
+date=`date +%Y-%m-%d`
+
+histgram=`curl \
+  -H "X-HockeyAppToken: $hockey_app_token" \
+  "https://rink.hockeyapp.net/api/2/apps/$app_id/crashes/histogram?start_date=$date&end_date=$date"`
+
+crash_count=`expr "$histgram" : '.*,\([0-9]*\)]'`
+echo $crash_count
+
+payload_text="{\"text\": \"$crash_count crashes on $date.\"}"
+echo $payload_text
+
+curl \
+  -X POST --data-urlencode "payload=$payload_text" \
+  $slack_hook_url
